@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: orderservice
+  datasource:
+    url: jdbc:postgresql://localhost:5432/order_db
+    username: admin
+    password: password123
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  security:
+    user:
+      name: indu
+      password: indu
+
+  # REDISSON CONFIGURATION
+  # This replaces the 'data: redis:' block
+  redisson:
+    config: |
+      singleServerConfig:
+        address: "redis://${REDIS_HOST:localhost}:6379"
+        connectionMinimumIdleSize: 10
+        connectionPoolSize: 64
+
+  # CACHE CONFIGURATION
+  # Redisson will automatically use the CacheManager via this setting
+  cache:
+    type: redis
+    cache-names: products,orders,orders_by_user
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
+server:
+  port: 8082

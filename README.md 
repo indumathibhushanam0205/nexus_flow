@@ -1,0 +1,100 @@
+This is a refined, professional version of your 'README.md'. It is structured to be clear, technically sound, and suitable for a GitHub repository.
+
+---
+
+# Nexus Flow: Distributed Order Management System
+
+Nexus Flow is a high-performance, microservice-based backend architecture designed for an online ordering system. The system leverages an event-driven design, robust authentication, and distributed caching to ensure scalability and reliability.
+
+## 🏗️ Architecture Overview
+
+The system is composed of three primary Kotlin-based microservices:
+
+1. Auth Service: Handles identity management, JWT-based authentication, and secure session handling.
+2. Order Service: Manages the order lifecycle, product inventory, and payment processing.
+3. Notification Service: An asynchronous consumer that tracks and serves order-related notifications.
+
+### Tech Stack
+*  Language: Kotlin (Maven)
+*  Database: PostgreSQL
+*  Caching & Coordination: Redis
+*  Messaging: Apache Kafka (with Zookeeper)
+*  Containerization: Docker Compose
+
+---
+
+## 🚀 Services & Functionality
+
+### 1. Auth Service (':8081')
+Secures the ecosystem using JWTs.
+*  Features: User registration, login with refresh token rotation, and logout.
+*  Endpoints:
+    *   'POST /auth/register': Create a new user account.
+    *   'POST /auth/login': Authenticate and receive 'access_token' + 'refresh_token' (HTTP-only cookie).
+    *   'POST /auth/refresh': Obtain a new access token.
+    *   'POST /auth/logout': Revoke active refresh tokens.
+    *   'GET /api/user/me': Retrieve current user profile.
+
+### 2. Order Service (':8082')
+Handles business logic and integrates with external services.
+*  Features: 
+    *  Rate Limiting: Implemented per user/endpoint (5–10 req/min).
+    *  Distributed Locking: Uses Redis 'SET NX EX' to prevent race conditions on order processing.
+    *  Caching: Implements Cache-Aside pattern for Product and Order data.
+    *  Event-Driven: Publishes 'ORDER_PLACED' and 'ORDER_PAYMENT_SUCCESS' events to Kafka.
+*  Endpoints:
+    *   'POST /api/place-order': Create order (requires JWT).
+    *   'GET /api/{id}': Fetch order details (Cached).
+    *   'GET /api/my': List orders for the authenticated user.
+    *   'PATCH /api/{id}/pay': Simulate payment (Admin/Owner only).
+    *   'PATCH /api/{id}/ship': Mark order as shipped (Admin only).
+    *   'GET /products/search': Search inventory.
+
+### 3. Notification Service (':8083')
+A consumer service that listens to the 'order_placed' Kafka topic and updates the notification store.
+*  Endpoints:
+    *   'GET /notifications/my': View all notifications for the authenticated user.
+
+---
+
+## 🧠 Redis Strategy
+We utilize Redis beyond simple caching to ensure system integrity:
+1. Cache: Product data (TTL: 5m), Order data (TTL: 2m), and Sessions (TTL: 15m).
+2. Rate Limiting: Tracking request counts per user/endpoint with a 1-minute sliding window.
+3. Distributed Locks: Ensuring atomic order processing using 'lock:order:{orderId}' with a 30s TTL.
+
+---
+
+## 🛠️ Getting Started
+
+### Prerequisites
+*   Docker & Docker Compose
+*   JDK 17+
+*   Maven
+
+### Running the System
+1.  Clone the repository.
+2.  Start the infrastructure (Postgres, Redis, Kafka, Zookeeper) using:
+    '''bash
+    docker-compose up -d
+    '''
+3.  Build and run each microservice via Maven:
+    '''bash
+    mvn clean install
+    mvn spring-boot:run
+    '''
+
+### API Documentation (Swagger)
+Once the services are running, visit:
+*  Auth Service: 'http://localhost:8081/swagger-ui/index.html'
+*  Order Service: 'http://localhost:8082/swagger-ui/index.html'
+*  Notification Service: 'http://localhost:8083/swagger-ui/index.html'
+
+---
+
+## 🔐 Database Schema Highlights
+*  Auth Service: 'users' (id, email, password_hash, role), 'refresh_tokens' (token_hash, expires_at, revoked).
+*  Order Service: 'orders' (status, total_amount), 'order_items' (linked to product_id), 'products' (stock_quantity).
+
+---
+*Developed for Nexus Flow | 2026*
