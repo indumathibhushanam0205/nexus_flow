@@ -1,7 +1,3 @@
-This is a refined, professional version of your 'README.md'. It is structured to be clear, technically sound, and suitable for a GitHub repository.
-
----
-
 # Nexus Flow: Distributed Order Management System
 
 Nexus Flow is a high-performance, microservice-based backend architecture designed for an online ordering system. The system leverages an event-driven design, robust authentication, and distributed caching to ensure scalability and reliability.
